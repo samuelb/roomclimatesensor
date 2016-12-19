@@ -16,6 +16,7 @@ void setup(void) {
     float temperature;
     float humidity;
     float heatindex;
+    float vcc;
 
     Serial.begin(115200);
     Serial.println();
@@ -26,6 +27,7 @@ void setup(void) {
 
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
+    vcc = ESP.getVcc();
 
     if (!isnan(temperature) && !isnan(humidity)) {
         heatindex = dht.computeHeatIndex(temperature, humidity, false);
@@ -33,6 +35,7 @@ void setup(void) {
         Serial.println("temperature: " + String(temperature) + " C");
         Serial.println("humidity: " + String(humidity) + " %");
         Serial.println("heat index: " + String(heatindex) + " C");
+        Serial.println("vcc: " + String(vcc) + " V");
 
         Serial.print("waiting for wifi");
         while (WiFi.status() != WL_CONNECTED) {
@@ -67,6 +70,12 @@ void setup(void) {
                   "<unit>Celsius</unit>" +
                   "<float>1</float>" +
                   "<value>" + String(heatindex) + "</value>" +
+                "</result>" +
+                "<result>" +
+                  "<channel>Voltage</channel>" +
+                  "<unit>Volt</unit>" +
+                  "<float>1</float>" +
+                  "<value>" + String(vcc) + "</value>" +
                 "</result>" +
                 "</prtg>";
 
