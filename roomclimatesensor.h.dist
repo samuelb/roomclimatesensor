@@ -1,0 +1,7 @@
+#define DHTPIN 5
+#define SSID "<SSID>"
+#define PASS "<PASSWORD>"
+#define PRTG_HOST "<HOSTNAME/IP>"
+#define PRTG_PORT 5050
+#define PRTG_SENSOR "<UUID>"
+#define SLEEP 60
