@@ -86,6 +86,9 @@ void setup(void) {
             while(client.available()) {
                 client.readStringUntil('\r');
             }
+
+            client.stop();
+
             Serial.println("done");
         } else {
             Serial.println("connection to prtg failed");
