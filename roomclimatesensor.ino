@@ -42,7 +42,7 @@ void setup(void) {
             Serial.print(".");
             delay(500);
         }
-        delay(1000);
+        delay(3000);
 
         Serial.print(" address is ");
         Serial.println(WiFi.localIP());
