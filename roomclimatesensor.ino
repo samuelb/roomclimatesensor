@@ -9,7 +9,7 @@
 #include "roomclimatesensor.h"
 
 DHT dht(DHTPIN, DHT22, 30);
-
+ADC_MODE(ADC_VCC);
 
 void setup(void) {
 
@@ -27,7 +27,7 @@ void setup(void) {
 
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
-    vcc = ESP.getVcc();
+    vcc = ESP.getVcc() / 1000.0;
 
     if (!isnan(temperature) && !isnan(humidity)) {
         heatindex = dht.computeHeatIndex(temperature, humidity, false);
