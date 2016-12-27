@@ -8,7 +8,7 @@
 
 #include "roomclimatesensor.h"
 
-DHT dht(DHTPIN, DHT22, 30);
+DHT dht(DHTPIN, DHTTYPE);
 ADC_MODE(ADC_VCC);
 
 void setup(void) {
@@ -24,7 +24,8 @@ void setup(void) {
     WiFi.begin(SSID, PASS);
 
     dht.begin();
-
+    // wait a bit before read values, otherwise it will fail often
+    delay(500);
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
     vcc = ESP.getVcc() / 1000.0;

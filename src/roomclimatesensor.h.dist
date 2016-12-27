@@ -1,4 +1,5 @@
-#define DHTPIN 5
+#define DHTPIN D4
+#define DHTTYPE DHT22
 #define SSID "<SSID>"
 #define PASS "<PASSWORD>"
 #define PRTG_HOST "<HOSTNAME/IP>"
