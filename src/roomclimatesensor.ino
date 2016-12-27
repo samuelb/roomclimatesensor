@@ -1,8 +1,3 @@
-// TODO:
-// - wait until IP address was assigned before try to connect to prtg server
-// - protect to run into endless-loop - force deep-sleep, timelimt for wait for
-//   WiFi and IP adress
-
 #include <ESP8266WiFi.h>
 #include "DHT.h"
 
@@ -24,10 +19,17 @@ void setup(void) {
     WiFi.begin(SSID, PASS);
 
     dht.begin();
-    // wait a bit before read values, otherwise it will fail often
+    // wait a bit before read values, otherwise it will fail often.
+    // TODO: figure out minimum sleep time
     delay(500);
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
+
+    // currenlty it says always 2.77 and I'm not sure if this is working
+    // correclty. I never tried with batterie power yet.
+    // I saw somwhere, that for precice measurements a capacitator is needed
+    // somewhere, not sure if NodeMCU and WeMos D1 mini have this already and
+    // if it's really needed.
     vcc = ESP.getVcc() / 1000.0;
 
     if (!isnan(temperature) && !isnan(humidity)) {
@@ -38,11 +40,17 @@ void setup(void) {
         Serial.println("heat index: " + String(heatindex) + " C");
         Serial.println("vcc: " + String(vcc) + " V");
 
+        // TODO: need to implement something here to prevent endless loop if
+        //       unable to connect to WiFi at all.
         Serial.print("waiting for wifi");
         while (WiFi.status() != WL_CONNECTED) {
             Serial.print(".");
             delay(500);
         }
+        // I have the suspicion that WL_CONNECTED doesn't mean that we already got
+        // a IP from the DHCP server. Better wait a bit here.
+        // TODO: check if I right with my suspicion and implement a wait-loop
+        //       for the ip address if needed.
         delay(3000);
 
         Serial.print(" address is ");
@@ -93,14 +101,20 @@ void setup(void) {
             Serial.println("done");
         } else {
             Serial.println("connection to prtg failed");
-            delay(2000);
         }
     } else {
         Serial.println("reading DHT failed");
-        delay(2000);
     }
+
+    // don't know if this is needed. need to check the power consumption.
+    Serial.println("turning off WiFi");
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+
+    // TODO: what is the difference betwee WAKE_RF_DISABLED and without it?
     Serial.println("going to deep sleep for " + String(SLEEP) + " seconds");
-    ESP.deepSleep(SLEEP * 1000000);
+    //ESP.deepSleep(SLEEP * 1000000);
+    ESP.deepSleep(SLEEP * 1000000, WAKE_RF_DISABLED);
 }
 
 void loop(void) {
