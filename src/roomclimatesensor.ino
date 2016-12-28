@@ -40,67 +40,71 @@ void setup(void) {
         Serial.println("heat index: " + String(heatindex) + " C");
         Serial.println("vcc: " + String(vcc) + " V");
 
-        // TODO: need to implement something here to prevent endless loop if
-        //       unable to connect to WiFi at all.
         Serial.print("waiting for wifi");
-        while (WiFi.status() != WL_CONNECTED) {
+        int waitloops = 0;
+        while (WiFi.status() != WL_CONNECTED && waitloops < 20) {
             Serial.print(".");
             delay(500);
+            waitloops++;
         }
-        // I have the suspicion that WL_CONNECTED doesn't mean that we already got
-        // a IP from the DHCP server. Better wait a bit here.
-        // TODO: check if I right with my suspicion and implement a wait-loop
-        //       for the ip address if needed.
-        delay(3000);
+        if (WiFi.status() == WL_CONNECTED) {
+            // I have the suspicion that WL_CONNECTED doesn't mean that we already got
+            // a IP from the DHCP server. Better wait a bit here.
+            // TODO: check if I right with my suspicion and implement a wait-loop
+            //       for the ip address if needed.
+            delay(3000);
 
-        Serial.print(" address is ");
-        Serial.println(WiFi.localIP());
+            Serial.print(" address is ");
+            Serial.println(WiFi.localIP());
 
-        WiFiClient client;
-        if (client.connect(PRTG_HOST, PRTG_PORT)) {
-            Serial.print("connected to prtg, sending data ... ");
+            WiFiClient client;
+            if (client.connect(PRTG_HOST, PRTG_PORT)) {
+                Serial.print("connected to prtg, sending data ... ");
 
-            String url = "/" + String(PRTG_SENSOR) + "?content=" +
-                "<prtg>" +
-                "<result>" +
-                  "<channel>Temperature</channel>" +
-                  "<unit>Celsius</unit>" +
-                  "<float>1</float>" +
-                  "<value>" + String(temperature) + "</value>" +
-                "</result>" +
-                "<result>" +
-                  "<channel>Humidity</channel>" +
-                  "<unit>Percent</unit>" +
-                  "<float>1</float>" +
-                  "<value>" + String(humidity) + "</value>" +
-                "</result>" +
-                "<result>" +
-                  "<channel>HeatIndex</channel>" +
-                  "<unit>Celsius</unit>" +
-                  "<float>1</float>" +
-                  "<value>" + String(heatindex) + "</value>" +
-                "</result>" +
-                "<result>" +
-                  "<channel>Voltage</channel>" +
-                  "<unit>Volt</unit>" +
-                  "<float>1</float>" +
-                  "<value>" + String(vcc) + "</value>" +
-                "</result>" +
-                "</prtg>";
+                String url = "/" + String(PRTG_SENSOR) + "?content=" +
+                    "<prtg>" +
+                    "<result>" +
+                      "<channel>Temperature</channel>" +
+                      "<unit>Celsius</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(temperature) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>Humidity</channel>" +
+                      "<unit>Percent</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(humidity) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>HeatIndex</channel>" +
+                      "<unit>Celsius</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(heatindex) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>Voltage</channel>" +
+                      "<unit>Volt</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(vcc) + "</value>" +
+                    "</result>" +
+                    "</prtg>";
 
-            client.print("GET " + url + " HTTP/1.1\r\n" +
-                "Host: " + PRTG_HOST + "\r\n" +
-                "Connection: close\r\n\r\n");
+                client.print("GET " + url + " HTTP/1.1\r\n" +
+                    "Host: " + PRTG_HOST + "\r\n" +
+                    "Connection: close\r\n\r\n");
 
-            while(client.available()) {
-                client.readStringUntil('\r');
+                while(client.available()) {
+                    client.readStringUntil('\r');
+                }
+
+                client.stop();
+
+                Serial.println("done");
+            } else {
+                Serial.println("connection to prtg failed");
             }
-
-            client.stop();
-
-            Serial.println("done");
         } else {
-            Serial.println("connection to prtg failed");
+            Serial.println("unable to connect to wifi");
         }
     } else {
         Serial.println("reading DHT failed");
