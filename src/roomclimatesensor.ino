@@ -59,7 +59,7 @@ void setup(void) {
 
             WiFiClient client;
             if (client.connect(PRTG_HOST, PRTG_PORT)) {
-                Serial.print("connected to prtg, sending data ... ");
+                Serial.print("connected to prtg, sending data... ");
 
                 String url = "/" + String(PRTG_SENSOR) + "?content=" +
                     "<prtg>" +
@@ -104,7 +104,7 @@ void setup(void) {
                 Serial.println("connection to prtg failed");
             }
         } else {
-            Serial.println("unable to connect to wifi");
+            Serial.println(" unable to connect to wifi");
         }
     } else {
         Serial.println("reading DHT failed");
@@ -117,8 +117,8 @@ void setup(void) {
 
     // TODO: what is the difference betwee WAKE_RF_DISABLED and without it?
     Serial.println("going to deep sleep for " + String(SLEEP) + " seconds");
-    //ESP.deepSleep(SLEEP * 1000000);
-    ESP.deepSleep(SLEEP * 1000000, WAKE_RF_DISABLED);
+    ESP.deepSleep(SLEEP * 1000000);
+    //ESP.deepSleep(SLEEP * 1000000, WAKE_RF_DISABLED);
 }
 
 void loop(void) {
