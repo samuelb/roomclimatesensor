@@ -83,10 +83,10 @@ void showdata(dhtdata* data) {
     Serial.println("mac address: " + String(data->mac));
 }
 
-bool submit(dhtdata* data) {
+bool submit_pushgateway(dhtdata* data) {
     WiFiClient client;
     if (client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT)) {
-        Serial.print("connected to " + String(PUSHGATEWAY_HOST) + ", sending data... ");
+        Serial.print("connected to pushgateway " + String(PUSHGATEWAY_HOST) + ", sending data... ");
 
         String body = "esp_temperature{esp_id=\"" + data->mac + "\"} " + String(data->temperature) + "\n"
             + "esp_humidity{esp_id=\"" + data->mac + "\"} " + String(data->humidity) + "\n"
@@ -114,6 +114,37 @@ bool submit(dhtdata* data) {
 	return false;
 }
 
+bool submit_influxdb(dhtdata* data) {
+    WiFiClient client;
+    if (client.connect(INFLUXDB_HOST, INFLUXDB_PORT)) {
+        Serial.print("connected to influxdb " + String(INFLUXDB_HOST) + ", sending data... ");
+
+        String body = "temperature,esp_id=\"" + data->mac + "\" value=" + String(data->temperature) + "\n"
+            + "humidity,esp_id=\"" + data->mac + "\" value=" + String(data->humidity) + "\n"
+            + "heatindex,esp_id=\"" + data->mac + "\" value=" + String(data->heatindex) + "\n"
+            + "vcc,esp_id=\"" + data->mac + "\" value=" + String(data->vcc) + "\n";
+
+        client.println("POST /write?db=" + String(INFLUXDB_DB) + " HTTP/1.1\r\n"
+            "Host: " + String(INFLUXDB_HOST) + ":" + INFLUXDB_PORT + "\r\n"
+            "User-Agent: d1mini/010\r\n"
+            "Accept: */*\r\n"
+            "Content-Type: application/x-www-form-urlencoded\r\n"
+            "Content-length: " + body.length() + "\r\n"
+            "\r\n" + body);
+
+        while(client.available()) {
+            client.read();
+        }
+
+        client.stop();
+
+        Serial.println("done");
+		return true;
+	}
+    Serial.println("connection to influxdb failed");
+	return false;
+}
+
 void deepsleep(void) {
     // TODO: what is the difference betwee WAKE_RF_DISABLED and without it?
     Serial.println("going to deep sleep for " + String(SLEEP) + " seconds");
@@ -134,8 +165,13 @@ void setup(void) {
 void loop(void) {
 	dhtdata data = measurement();
     showdata(&data);
-	submit(&data);
+#if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
+	submit_pushgateway(&data);
+#endif
+#if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
+	submit_influxdb(&data);
+#endif
 	turnoffwifi();
-	deepsleep();
+	deepsleep(); // everything after this won't be executed anymore
     delay(SLEEP * 1000);
 }
