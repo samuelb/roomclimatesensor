@@ -2,7 +2,6 @@
 #define DHTTYPE DHT22
 #define SSID "<SSID>"
 #define PASS "<PASSWORD>"
-#define PRTG_HOST "<HOSTNAME/IP>"
-#define PRTG_PORT 5050
-#define PRTG_SENSOR "<UUID>"
+#define PUSHGATEWAY_HOST "<HOSTNAME/IP>"
+#define PUSHGATEWAY_PORT 9091
 #define SLEEP 60

@@ -1,2 +1,5 @@
 .pioenvs
 .piolibdeps
+.envrc
+.pyenv
+src/roomclimatesensor.h
