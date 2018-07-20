@@ -22,7 +22,7 @@ dhtdata measurement(void) {
     float temperature = dht.readTemperature();
     float humidity = dht.readHumidity();
 
-	if (isnan(temperature) || isnan(humidity)) {
+    if (isnan(temperature) || isnan(humidity)) {
         Serial.println("reading DHT failed");
     }
 
@@ -37,7 +37,7 @@ dhtdata measurement(void) {
         temperature,
         humidity,
         dht.computeHeatIndex(temperature, humidity, false),
-		vcc,
+        vcc,
         WiFi.macAddress()
     };
     return m;
@@ -108,10 +108,10 @@ bool submit_pushgateway(dhtdata* data) {
         client.stop();
 
         Serial.println("done");
-		return true;
-	}
+        return true;
+    }
     Serial.println("connection to pushgateway failed");
-	return false;
+    return false;
 }
 
 bool submit_influxdb(dhtdata* data) {
@@ -139,10 +139,10 @@ bool submit_influxdb(dhtdata* data) {
         client.stop();
 
         Serial.println("done");
-		return true;
-	}
+        return true;
+    }
     Serial.println("connection to influxdb failed");
-	return false;
+    return false;
 }
 
 void deepsleep(void) {
@@ -158,20 +158,20 @@ void setup(void) {
 
     WiFi.begin(SSID, PASS);
     dht.begin();
-	waitforwifi();
+    waitforwifi();
 }
 
 
 void loop(void) {
-	dhtdata data = measurement();
+    dhtdata data = measurement();
     showdata(&data);
 #if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
-	submit_pushgateway(&data);
+    submit_pushgateway(&data);
 #endif
 #if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
-	submit_influxdb(&data);
+    submit_influxdb(&data);
 #endif
-	turnoffwifi();
-	deepsleep(); // everything after this won't be executed anymore
+    turnoffwifi();
+    deepsleep(); // everything after this won't be executed anymore
     delay(SLEEP * 1000);
 }
