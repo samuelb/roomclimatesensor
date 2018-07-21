@@ -11,7 +11,6 @@ struct dhtdata {
     float humidity;
     float heatindex;
     float vcc;
-    String mac;
 };
 
 dhtdata measurement(void) {
@@ -37,8 +36,7 @@ dhtdata measurement(void) {
         temperature,
         humidity,
         dht.computeHeatIndex(temperature, humidity, false),
-        vcc,
-        WiFi.macAddress()
+        vcc
     };
     return m;
 }
@@ -80,18 +78,17 @@ void showdata(dhtdata* data) {
     Serial.println("humidity: " + String(data->humidity) + " %");
     Serial.println("heat index: " + String(data->heatindex) + " C");
     Serial.println("vcc: " + String(data->vcc) + " V");
-    Serial.println("mac address: " + String(data->mac));
 }
 
-bool submit_pushgateway(dhtdata* data) {
+bool submit_pushgateway(dhtdata* data, String deviceid) {
     WiFiClient client;
     if (client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT)) {
         Serial.print("connected to pushgateway " + String(PUSHGATEWAY_HOST) + ", sending data... ");
 
-        String body = "esp_temperature{esp_id=\"" + data->mac + "\"} " + String(data->temperature) + "\n"
-            + "esp_humidity{esp_id=\"" + data->mac + "\"} " + String(data->humidity) + "\n"
-            + "esp_heatindex{esp_id=\"" + data->mac + "\"} " + String(data->heatindex) + "\n"
-            + "esp_vcc{esp_id=\"" + data->mac + "\"} " + String(data->vcc) + "\n";
+        String body = "esp_temperature{esp_id=\"" + deviceid + "\"} " + String(data->temperature) + "\n"
+            + "esp_humidity{esp_id=\"" + deviceid + "\"} " + String(data->humidity) + "\n"
+            + "esp_heatindex{esp_id=\"" + deviceid + "\"} " + String(data->heatindex) + "\n"
+            + "esp_vcc{esp_id=\"" + deviceid + "\"} " + String(data->vcc) + "\n";
 
         client.println("POST /metrics/job/esp HTTP/1.1\r\n"
             "Host: " + String(PUSHGATEWAY_HOST) + ":" + PUSHGATEWAY_PORT + "\r\n"
@@ -114,15 +111,15 @@ bool submit_pushgateway(dhtdata* data) {
     return false;
 }
 
-bool submit_influxdb(dhtdata* data) {
+bool submit_influxdb(dhtdata* data, String deviceid) {
     WiFiClient client;
     if (client.connect(INFLUXDB_HOST, INFLUXDB_PORT)) {
         Serial.print("connected to influxdb " + String(INFLUXDB_HOST) + ", sending data... ");
 
-        String body = "temperature,esp_id=\"" + data->mac + "\" value=" + String(data->temperature) + "\n"
-            + "humidity,esp_id=\"" + data->mac + "\" value=" + String(data->humidity) + "\n"
-            + "heatindex,esp_id=\"" + data->mac + "\" value=" + String(data->heatindex) + "\n"
-            + "vcc,esp_id=\"" + data->mac + "\" value=" + String(data->vcc) + "\n";
+        String body = "temperature,esp_id=\"" + deviceid + "\" value=" + String(data->temperature) + "\n"
+            + "humidity,esp_id=\"" + deviceid + "\" value=" + String(data->humidity) + "\n"
+            + "heatindex,esp_id=\"" + deviceid + "\" value=" + String(data->heatindex) + "\n"
+            + "vcc,esp_id=\"" + deviceid + "\" value=" + String(data->vcc) + "\n";
 
         client.println("POST /write?db=" + String(INFLUXDB_DB) + " HTTP/1.1\r\n"
             "Host: " + String(INFLUXDB_HOST) + ":" + INFLUXDB_PORT + "\r\n"
@@ -165,12 +162,20 @@ void setup(void) {
 void loop(void) {
     dhtdata data = measurement();
     showdata(&data);
+
+#ifdef DEVICEID
+    String deviceid = DEVICEID;
+#else
+    String deviceid = WiFi.macAddress();
+#endif
+
 #if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
-    submit_pushgateway(&data);
+    submit_pushgateway(&data, deviceid);
 #endif
 #if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
-    submit_influxdb(&data);
+    submit_influxdb(&data, deviceid);
 #endif
+
     turnoffwifi();
     deepsleep(); // everything after this won't be executed anymore
     delay(SLEEP * 1000);
