@@ -47,14 +47,8 @@ bool waitforwifi(void) {
     for (int i = 0; i < 20; i++) {
         Serial.print(".");
         if (WiFi.status() == WL_CONNECTED) {
-            Serial.print("success");
-
-            // I have the suspicion that WL_CONNECTED doesn't mean that we already got
-            // a IP from the DHCP server. Better wait a bit here.
-            // TODO: check if I right with my suspicion and implement a wait-loop
-            //       for the ip address if needed.
-            delay(3000);
-            Serial.print(" address is ");
+            Serial.println("success");
+            Serial.print("IP address is ");
             Serial.println(WiFi.localIP());
             return true;
         }
