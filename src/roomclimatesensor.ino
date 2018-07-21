@@ -79,10 +79,10 @@ bool submit_pushgateway(dhtdata* data, String deviceid) {
     if (client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT)) {
         Serial.print("connected to pushgateway " + String(PUSHGATEWAY_HOST) + ", sending data... ");
 
-        String body = "esp_temperature{esp_id=\"" + deviceid + "\"} " + String(data->temperature) + "\n"
-            + "esp_humidity{esp_id=\"" + deviceid + "\"} " + String(data->humidity) + "\n"
-            + "esp_heatindex{esp_id=\"" + deviceid + "\"} " + String(data->heatindex) + "\n"
-            + "esp_vcc{esp_id=\"" + deviceid + "\"} " + String(data->vcc) + "\n";
+        String body = "esp_temperature{device=\"" + deviceid + "\"} " + String(data->temperature) + "\n"
+            + "esp_humidity{device=\"" + deviceid + "\"} " + String(data->humidity) + "\n"
+            + "esp_heatindex{device=\"" + deviceid + "\"} " + String(data->heatindex) + "\n"
+            + "esp_vcc{device=\"" + deviceid + "\"} " + String(data->vcc) + "\n";
 
         client.println("POST /metrics/job/esp HTTP/1.1\r\n"
             "Host: " + String(PUSHGATEWAY_HOST) + ":" + PUSHGATEWAY_PORT + "\r\n"
@@ -110,10 +110,10 @@ bool submit_influxdb(dhtdata* data, String deviceid) {
     if (client.connect(INFLUXDB_HOST, INFLUXDB_PORT)) {
         Serial.print("connected to influxdb " + String(INFLUXDB_HOST) + ", sending data... ");
 
-        String body = "temperature,esp_id=\"" + deviceid + "\" value=" + String(data->temperature) + "\n"
-            + "humidity,esp_id=\"" + deviceid + "\" value=" + String(data->humidity) + "\n"
-            + "heatindex,esp_id=\"" + deviceid + "\" value=" + String(data->heatindex) + "\n"
-            + "vcc,esp_id=\"" + deviceid + "\" value=" + String(data->vcc) + "\n";
+        String body = "temperature,device=\"" + deviceid + "\" value=" + String(data->temperature) + "\n"
+            + "humidity,device=\"" + deviceid + "\" value=" + String(data->humidity) + "\n"
+            + "heatindex,device=\"" + deviceid + "\" value=" + String(data->heatindex) + "\n"
+            + "vcc,device=\"" + deviceid + "\" value=" + String(data->vcc) + "\n";
 
         client.println("POST /write?db=" + String(INFLUXDB_DB) + " HTTP/1.1\r\n"
             "Host: " + String(INFLUXDB_HOST) + ":" + INFLUXDB_PORT + "\r\n"
