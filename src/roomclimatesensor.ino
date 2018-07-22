@@ -110,10 +110,10 @@ bool submit_influxdb(dhtdata* data, String deviceid) {
     if (client.connect(INFLUXDB_HOST, INFLUXDB_PORT)) {
         Serial.print("connected to influxdb " + String(INFLUXDB_HOST) + ", sending data... ");
 
-        String body = "temperature,device=\"" + deviceid + "\" value=" + String(data->temperature) + "\n"
-            + "humidity,device=\"" + deviceid + "\" value=" + String(data->humidity) + "\n"
-            + "heatindex,device=\"" + deviceid + "\" value=" + String(data->heatindex) + "\n"
-            + "vcc,device=\"" + deviceid + "\" value=" + String(data->vcc) + "\n";
+        String body = "temperature,device=" + deviceid + " value=" + String(data->temperature) + "\n"
+            + "humidity,device=" + deviceid + " value=" + String(data->humidity) + "\n"
+            + "heatindex,device=" + deviceid + " value=" + String(data->heatindex) + "\n"
+            + "vcc,device=" + deviceid + " value=" + String(data->vcc) + "\n";
 
         client.println("POST /write?db=" + String(INFLUXDB_DB) + " HTTP/1.1\r\n"
             "Host: " + String(INFLUXDB_HOST) + ":" + INFLUXDB_PORT + "\r\n"
