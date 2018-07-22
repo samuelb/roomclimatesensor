@@ -60,13 +60,6 @@ bool waitforwifi(void) {
     return false;
 }
 
-bool turnoffwifi(void) {
-    // don't know if this is needed. need to check the power consumption.
-    Serial.println("turning off WiFi");
-    WiFi.disconnect();
-    WiFi.mode(WIFI_OFF);
-}
-
 void showdata(dhtdata* data) {
     Serial.println("temperature: " + String(data->temperature) + " C");
     Serial.println("humidity: " + String(data->humidity) + " %");
@@ -196,13 +189,6 @@ bool submit_prtg(dhtdata* data) {
 }
 #endif
 
-void deepsleep(void) {
-    // TODO: what is the difference betwee WAKE_RF_DISABLED and without it?
-    Serial.println("going to deep sleep for " + String(SLEEP) + " seconds");
-    ESP.deepSleep(SLEEP * 1000000);
-    //ESP.deepSleep(SLEEP * 1000000, WAKE_RF_DISABLED);
-}
-
 void setup(void) {
     Serial.begin(115200);
     Serial.println();
@@ -233,7 +219,9 @@ void loop(void) {
     submit_prtg(&data);
 #endif
 
-    turnoffwifi();
-    deepsleep(); // everything after this won't be executed anymore
+    Serial.println("going to deep sleep for " + String(SLEEP) + " seconds");
+    ESP.deepSleep(SLEEP * 1000000);
+
+    // even if the deep sleep is commented out, do the sleep, for developing
     delay(SLEEP * 1000);
 }
