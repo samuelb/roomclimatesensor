@@ -7,5 +7,8 @@
 //#define INFLUXDB_HOST "<HOSTNAME/IP>"
 //#define INFLUXDB_PORT 8086
 //#define INFLUXDB_DB "<DBNAME>"
+//#define PRTG_HOST "<HOSTNAME/IP>"
+//#define PRTG_PORT 5050
+//#define PRTG_SENSORT "<SENSOR UUID>"
 #define SLEEP 60
 //#define DEVICEID "myesp"

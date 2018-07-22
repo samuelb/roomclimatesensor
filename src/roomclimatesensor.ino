@@ -74,6 +74,7 @@ void showdata(dhtdata* data) {
     Serial.println("vcc: " + String(data->vcc) + " V");
 }
 
+#if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
 bool submit_pushgateway(dhtdata* data, String deviceid) {
     WiFiClient client;
     if (client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT)) {
@@ -104,7 +105,9 @@ bool submit_pushgateway(dhtdata* data, String deviceid) {
     Serial.println("connection to pushgateway failed");
     return false;
 }
+#endif
 
+#if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
 bool submit_influxdb(dhtdata* data, String deviceid) {
     WiFiClient client;
     if (client.connect(INFLUXDB_HOST, INFLUXDB_PORT)) {
@@ -135,6 +138,63 @@ bool submit_influxdb(dhtdata* data, String deviceid) {
     Serial.println("connection to influxdb failed");
     return false;
 }
+#endif
+
+#if defined(PRTG_HOST) && defined(PRTG_PORT) && defined(PRTG_SENSOR)
+bool submit_prtg(dhtdata* data) {
+    WiFiClient client;
+    if (client.connect(PRTG_HOST, PRTG_PORT)) {
+        Serial.print("connected to prtg " + String(PRTG_HOST) + ", sending data... ");
+
+        String url = "/" + String(PRTG_SENSOR) + "?content=" +
+                    "<prtg>" +
+                    "<result>" +
+                      "<channel>Temperature</channel>" +
+                      "<unit>Celsius</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(data->temperature) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>Humidity</channel>" +
+                      "<unit>Percent</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(data->humidity) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>HeatIndex</channel>" +
+                      "<unit>Celsius</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(data->heatindex) + "</value>" +
+                    "</result>" +
+                    "<result>" +
+                      "<channel>Voltage</channel>" +
+                      "<unit>Volt</unit>" +
+                      "<float>1</float>" +
+                      "<value>" + String(data->vcc) + "</value>" +
+                    "</result>" +
+                    "</prtg>";
+
+        client.print("GET " + url + " HTTP/1.1\r\n" +
+            "Host: " + PRTG_HOST + "\r\n" +
+            "User-Agent: d1mini/010\r\n"
+            "Accept: */*\r\n"
+            "Content-Type: application/x-www-form-urlencoded\r\n"
+            "Content-length: 0\r\n"
+            "\r\n");
+
+        while(client.available()) {
+            client.read();
+        }
+
+        client.stop();
+
+        Serial.println("done");
+        return true;
+    }
+    Serial.println("connection to prtg failed");
+    return false;
+}
+#endif
 
 void deepsleep(void) {
     // TODO: what is the difference betwee WAKE_RF_DISABLED and without it?
@@ -168,6 +228,9 @@ void loop(void) {
 #endif
 #if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
     submit_influxdb(&data, deviceid);
+#endif
+#if defined(PRTG_HOST) && defined(PRTG_PORT) && defined(PRTG_SENSOR)
+    submit_prtg(&data);
 #endif
 
     turnoffwifi();
