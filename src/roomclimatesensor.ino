@@ -67,11 +67,11 @@ void showdata(dhtdata* data) {
     Serial.println("vcc: " + String(data->vcc) + " V");
 }
 
-#if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
-bool submit_pushgateway(dhtdata* data, String deviceid) {
+#if defined(PROMETHEUS_HOST) && defined(PROMETHEUS_PORT)
+bool submit_prometheus(dhtdata* data, String deviceid) {
     WiFiClient client;
-    if (client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT)) {
-        Serial.print("connected to pushgateway " + String(PUSHGATEWAY_HOST) + ", sending data... ");
+    if (client.connect(PROMETHEUS_HOST, PROMETHEUS_PORT)) {
+        Serial.print("connected to prometheus " + String(PROMETHEUS_HOST) + ", sending data... ");
 
         String body = "esp_temperature{device=\"" + deviceid + "\"} " + String(data->temperature) + "\n"
             + "esp_humidity{device=\"" + deviceid + "\"} " + String(data->humidity) + "\n"
@@ -79,7 +79,7 @@ bool submit_pushgateway(dhtdata* data, String deviceid) {
             + "esp_vcc{device=\"" + deviceid + "\"} " + String(data->vcc) + "\n";
 
         client.println("POST /metrics/job/esp HTTP/1.1\r\n"
-            "Host: " + String(PUSHGATEWAY_HOST) + ":" + PUSHGATEWAY_PORT + "\r\n"
+            "Host: " + String(PROMETHEUS_HOST) + ":" + PROMETHEUS_PORT + "\r\n"
             "User-Agent: d1mini/010\r\n"
             "Accept: */*\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
@@ -95,7 +95,7 @@ bool submit_pushgateway(dhtdata* data, String deviceid) {
         Serial.println("done");
         return true;
     }
-    Serial.println("connection to pushgateway failed");
+    Serial.println("connection to prometheus failed");
     return false;
 }
 #endif
@@ -209,8 +209,8 @@ void loop(void) {
     String deviceid = WiFi.macAddress();
 #endif
 
-#if defined(PUSHGATEWAY_HOST) && defined(PUSHGATEWAY_PORT)
-    submit_pushgateway(&data, deviceid);
+#if defined(PROMETHEUS_HOST) && defined(PROMETHEUS_PORT)
+    submit_prometheus(&data, deviceid);
 #endif
 #if defined(INFLUXDB_HOST) && defined(INFLUXDB_PORT) && defined(INFLUXDB_DB)
     submit_influxdb(&data, deviceid);
